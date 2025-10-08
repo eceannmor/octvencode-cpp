@@ -1,2 +1,2 @@
 # octvencode-cpp
-A C/C++ library for highly space-efficient encoding of binary volumes designed for cloud computing 
+Placeholder repository. Waiting for [octvencode-python](https://github.com/eceannmor/octvencode-python) to be finished.
