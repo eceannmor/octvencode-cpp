@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace octvencode {
+namespace otbv {
 volume<bool> reshape_to_cubic(const std::vector<bool> &data) {
   const std::size_t data_size = data.size();
   double edge_len = std::cbrt(data_size);
@@ -73,7 +73,7 @@ void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
         "Encountered a subvolume with a size of 0 when encoding the volume. "
         "This should never happen. Please open a new issue and attach the data "
         "you are trying to encode. "
-        "https://github.com/eceannmor/octvencode-python/issues");
+        "https://github.com/eceannmor/otbv-cpp/issues");
   }
   if (is_subvolume_homogeneous(data, xs, xe, ys, ye, zs, ze)) {
     // leaf
@@ -117,4 +117,4 @@ std::vector<bool> encode(const volume<bool> &data) {
   return out;
 }
 
-} // namespace octvencode
+} // namespace otbv

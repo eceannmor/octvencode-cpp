@@ -1,2 +1,2 @@
-# octvencode-cpp
-Low priority project until [octvencode-python](https://github.com/eceannmor/octvencode-python) is finished.
+# otbv-cpp
+Low priority project until [otbv-python](https://github.com/eceannmor/otbv-python) is finished.

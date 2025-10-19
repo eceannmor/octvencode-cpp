@@ -4,7 +4,7 @@
 #include <fstream>
 #include <stdexcept>
 
-namespace octvencode {
+namespace otbv {
 
 inline bool endswith(const std::string &str, const std::string &suffix) {
   if (str.length() >= suffix.length()) {
@@ -55,4 +55,4 @@ void save(std::string path, const std::vector<bool> &data,
   out_file.close();
 }
 
-} // namespace octvencode
+} // namespace otbv

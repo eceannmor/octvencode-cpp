@@ -1,6 +1,6 @@
 #pragma once
 
-namespace octvencode
+namespace otbv
 {
     void save();
     void load();

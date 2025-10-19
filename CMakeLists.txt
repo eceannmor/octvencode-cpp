@@ -2,7 +2,7 @@ include(GNUInstallDirs)
 
 cmake_minimum_required(VERSION 4.1)
 
-project("octvencode" VERSION 0.0.1)
+project("OTBV" VERSION 0.0.1)
 
 if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     message(STATUS "This project has a top-level one called [${CMAKE_PROJECT_NAME}]")
@@ -51,7 +51,7 @@ endif()
 
 # without it public headers won't get installed
 set(public_headers
-    include/octvencode.h
+    include/otbv.h
 )
 # note that ${public_headers} has to be in quotes
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")

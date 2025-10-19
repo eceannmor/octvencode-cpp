@@ -5,7 +5,7 @@
 
 template <typename T> using volume = std::vector<std::vector<std::vector<T>>>;
 
-namespace octvencode {
+namespace otbv {
 
 void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
                       std::size_t xs, std::size_t xe, std::size_t ys,
@@ -39,4 +39,4 @@ template <typename T>
 bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
                               std::size_t xe, std::size_t ys, std::size_t ye,
                               std::size_t zs, std::size_t ze);
-} // namespace octvencode
+} // namespace otbv
