@@ -1,8 +1,10 @@
 #include "io.h"
+#include "conversion.h"
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <stdexcept>
+#include <tuple>
 
 namespace otbv {
 
@@ -17,14 +19,8 @@ inline bool endswith(const std::string &str, const std::string &suffix) {
   }
 }
 
-void save(std::ostream &stream, const std::vector<bool> &data,
+void stream_bytes(std::ostream &stream, const std::vector<bool> &data,
           const size_t resolution) {
-  /* Should be removed later */
-  // if (!endswith(path, ".octv")) {
-  //   throw std::invalid_argument(
-  //       "Path must end in a file with a .octv extension");
-  // }
-
   /*** metadata ***/
   char rem = data.size() % 8;
   char pad_len = rem == 0 ? 0 : 8 - rem;
@@ -59,10 +55,6 @@ void save(std::ostream &stream, const std::vector<bool> &data,
   }
   data_out.insert(data_out.end(), data.begin(), data.end());
 
-  printf("%zu\n", data.size());
-  printf("%d\n", pad_len);
-  printf("%zu\n", data_out.size());
-
   // signature
   stream.write(SIGNATURE, 5);
   // metadata
@@ -71,15 +63,26 @@ void save(std::ostream &stream, const std::vector<bool> &data,
   stream.write(reinterpret_cast<const char*>(&meta_res_y), sizeof(meta_res_y));
   stream.write(reinterpret_cast<const char*>(&meta_res_z), sizeof(meta_res_z));
   stream.write(reinterpret_cast<const char*>(&meta_data_len), sizeof(meta_data_len));
-  // stream << meta_first << meta_res_x << meta_res_y << meta_res_z << meta_data_len;
   // data
   for (std::size_t i = 0; i < data_out.size(); i += 8) {
-    uint8_t c = 0;
+    char c = 0;
     for (int j = 0; j < 8; j++) {
       c |= static_cast<char>(data_out[i + j]) << (7 - j);
     }
-    stream << c;
+    stream.write(&c, 1);
   }
+}
+
+void encoded_to_file(std::string filename, const std::vector<bool> &data, std::tuple<size_t, size_t, size_t> resolution) {
+  std::ofstream file_out(filename, std::ofstream::binary);
+  otbv::save(file_out, data, resolution);
+  file_out.close();
+}
+
+void save(std::string filename, volume<bool> data) {
+  const std::vector<bool> encoded_data = otbv::encode(data);
+  auto resolution = std::make_tuple(data.size(), data[0].size(), data[0][0].size());
+  encoded_to_file(filename, encoded_data, resolution);
 }
 
 } // namespace otbv
