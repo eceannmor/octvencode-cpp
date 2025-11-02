@@ -6,7 +6,7 @@
 
 namespace otbv {
 
-static constexpr char[] SIGNATURE = "OTBV\x96";
+static constexpr char SIGNATURE[] = "OTBV\x96";
 
 inline bool endswith(const std::string &str, const std::string &suffix) {
   if (str.length() >= suffix.length()) {
@@ -18,7 +18,7 @@ inline bool endswith(const std::string &str, const std::string &suffix) {
 }
 
 void save(std::ostream &stream, const std::vector<bool> &data,
-          const std::size_t resolution) {
+          const size_t resolution) {
   /* Should be removed later */
   // if (!endswith(path, ".octv")) {
   //   throw std::invalid_argument(
@@ -41,7 +41,7 @@ void save(std::ostream &stream, const std::vector<bool> &data,
   }
 
   // res
-  // same here, resolution should be stored separatelly
+  // same here, resolution should be stored separately
   uint32_t meta_res_x = resolution;
   
   // not written if cubic
@@ -64,9 +64,14 @@ void save(std::ostream &stream, const std::vector<bool> &data,
   printf("%zu\n", data_out.size());
 
   // signature
-  stream << SIGNATURE;
+  stream.write(SIGNATURE, 5);
   // metadata
-  stream << meta_first << meta_res_x << meta_res_y << meta_res_z << meta_data_len;
+  stream.write(reinterpret_cast<const char*>(&meta_first), sizeof(meta_first));
+  stream.write(reinterpret_cast<const char*>(&meta_res_x), sizeof(meta_res_x));
+  stream.write(reinterpret_cast<const char*>(&meta_res_y), sizeof(meta_res_y));
+  stream.write(reinterpret_cast<const char*>(&meta_res_z), sizeof(meta_res_z));
+  stream.write(reinterpret_cast<const char*>(&meta_data_len), sizeof(meta_data_len));
+  // stream << meta_first << meta_res_x << meta_res_y << meta_res_z << meta_data_len;
   // data
   for (std::size_t i = 0; i < data_out.size(); i += 8) {
     uint8_t c = 0;
