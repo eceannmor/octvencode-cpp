@@ -17,19 +17,13 @@ inline bool endswith(const std::string &str, const std::string &suffix) {
   }
 }
 
-void save(std::string path, const std::vector<bool> &data,
+void save(std::ostream &stream, const std::vector<bool> &data,
           const std::size_t resolution) {
   /* Should be removed later */
   // if (!endswith(path, ".octv")) {
   //   throw std::invalid_argument(
   //       "Path must end in a file with a .octv extension");
   // }
-
-
-  std::ofstream out_file(path, std::ios::binary);
-  if (!out_file) {
-    // TODO
-  }
 
   /*** metadata ***/
   char rem = data.size() % 8;
@@ -70,20 +64,17 @@ void save(std::string path, const std::vector<bool> &data,
   printf("%zu\n", data_out.size());
 
   // signature
-  out_file << SIGNATURE;
+  stream << SIGNATURE;
   // metadata
-  out_file << meta_first << meta_res_x << meta_res_y << meta_res_z << meta_data_len;
+  stream << meta_first << meta_res_x << meta_res_y << meta_res_z << meta_data_len;
   // data
   for (std::size_t i = 0; i < data_out.size(); i += 8) {
     uint8_t c = 0;
     for (int j = 0; j < 8; j++) {
       c |= static_cast<char>(data_out[i + j]) << (7 - j);
     }
-    out_file << c;
+    stream << c;
   }
-
-  
-  out_file.close();
 }
 
 } // namespace otbv
