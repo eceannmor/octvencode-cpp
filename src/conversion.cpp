@@ -1,11 +1,29 @@
 #include "conversion.h"
 
+#include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
 #include <vector>
 
+// https://www.reddit.com/r/cpp_questions/comments/1h3sva9/
+// not handling edge cases
+size_t pow2_roof(size_t number) {
+  if (!(number & (number - 1)))
+    return number;
+  size_t shift = 1;
+  size_t val = 0;
+  do {
+    val = number;
+    number |= (number >> shift);
+    shift *= 2;
+  } while (number > val);
+  return val + 1;
+}
+
 namespace otbv {
+
 volume<bool> reshape_to_cubic(const std::vector<bool> &data) {
   const std::size_t data_size = data.size();
   double edge_len = std::cbrt(data_size);
@@ -32,10 +50,6 @@ volume<bool> reshape_to_cubic(const std::vector<bool> &data) {
     return out;
   }
 }
-
-// template <typename T> bool is_volume_homogeneous(const volume<T> &data) {
-//   return false; // :C
-// }
 
 template <typename T>
 bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
@@ -104,17 +118,24 @@ void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
   }
 }
 
-/**
- * @brief Encodes the binary volume. By this step, the volume should be
- * converted to bool
- *
- * @return std::vector<bool>
- */
 std::vector<bool> encode(const volume<bool> &data) {
   std::vector<bool> out;
   size_t resolution = data.size();
   encode_recursive(data, out, 0, resolution, 0, resolution, 0, resolution);
   return out;
+}
+
+void pad_to_cube(volume<bool> &data) {
+  size_t max_res = std::max(data.size(), data[0].size());
+  max_res = std::max(max_res, data[0][0].size());
+  max_res = pow2_roof(max_res);
+  data.resize(max_res);
+  for (auto &plane : data) {
+    plane.resize(max_res);
+    for (auto &col : plane) {
+      col.resize(max_res);
+    }
+  }
 }
 
 } // namespace otbv

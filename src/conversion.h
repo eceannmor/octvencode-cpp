@@ -31,12 +31,12 @@ template <typename T> volume<bool> convert_to_bool(const volume<T> &data);
  */
 template <typename T> volume<T> reshape_to_cubic(const std::vector<T> &data);
 
-// template <typename T> bool is_volume_homogeneous(const volume<T> &data);
-
 template <typename T> inline unsigned long long size(const volume<T> &data);
 
 template <typename T>
 bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
                               std::size_t xe, std::size_t ys, std::size_t ye,
                               std::size_t zs, std::size_t ze);
+
+void pad_to_cube(volume<bool> &data);
 } // namespace otbv
