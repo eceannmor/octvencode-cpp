@@ -32,11 +32,10 @@ template <typename T> vector3<bool> convert_to_bool(const vector3<T> &data);
  */
 template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data);
 
-template <typename T>
-vector3<T> reshape(const std::vector<T> &data,
+vector3<bool> reshape(const std::vector<bool> &data,
                    const std::tuple<size_t, size_t, size_t> &resolution);
 
-template <typename T> size_t size(const vector3<T> &data);
+size_t size(const vector3<bool> &data);
 
 template <typename T>
 bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,

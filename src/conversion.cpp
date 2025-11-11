@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
 #include <stdexcept>
 #include <vector>
 
@@ -51,8 +52,7 @@ template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data) {
   }
 }
 
-template <typename T>
-vector3<T> reshape(const std::vector<T> &data,
+vector3<bool> reshape(const std::vector<bool> &data,
                    const std::tuple<size_t, size_t, size_t> &resolution) {
   const size_t data_size = data.size(), //
       x_res = std::get<0>(resolution),  //
@@ -61,11 +61,12 @@ vector3<T> reshape(const std::vector<T> &data,
       resolution_size = x_res * y_res * z_res;
 
   if (data_size != resolution_size) {
+    printf("%zu, %zu \n", data_size, resolution_size);
     throw std::invalid_argument(
         "Provided vector cannot be reshaped to a provided resolution");
   }
 
-  vector3<T> out;
+  vector3<bool> out;
   out.resize(x_res);
   for (auto &row : out) {
     row.resize(y_res);
@@ -102,10 +103,6 @@ bool is_subvolume_homogeneous(const vector3<T> &data, size_t xs, size_t xe,
     }
   }
   return true;
-}
-
-template <typename T> inline size_t size(const vector3<T> &data) {
-  return data.size() * data[0].size() * data[0][0].size();
 }
 
 size_t size(const vector3<bool> &data) {

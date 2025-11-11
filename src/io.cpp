@@ -1,5 +1,4 @@
 #include "io.h"
-#include "conversion.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -99,7 +98,7 @@ void save(const std::string &filename,
   stream_data_as_file_bytes(file_out, encoded_data, resolution, padded);
   int bytes_written = file_out.tellp();
   if (bytes_written > 0) {
-    printf("Written %d bytes", bytes_written);
+    printf("Written %d bytes\n", bytes_written);
   }
   file_out.close();
 }
