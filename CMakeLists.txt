@@ -6,12 +6,11 @@ project(
     LANGUAGES CXX
 )
 include(GNUInstallDirs)
+include(CTest)
 
 add_library(${PROJECT_NAME} SHARED 
     src/conversion.cpp
-    # src/conversion.h
     src/io.cpp
-    # src/io.h
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -25,3 +24,8 @@ install(TARGETS ${PROJECT_NAME}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+
+add_executable(testing tests/tests.cpp)
+target_link_libraries(testing PRIVATE ${PROJECT_NAME})
+enable_testing()
+add_test(NAME testing COMMAND $<TARGET_FILE:testing>)
