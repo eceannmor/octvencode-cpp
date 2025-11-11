@@ -10,6 +10,9 @@ namespace otbv {
 void data_to_file_bytes(std::ostream &stream, const std::vector<bool> &data,
                         const std::tuple<size_t, size_t, size_t> resolution);
 
+void save(std::string filename, std::vector<bool> data);
+void save(std::string filename, std::vector<std::vector<std::vector<bool>>> data);
+
 // void save(std::string filename, volume<bool> data);
 
 // void load();

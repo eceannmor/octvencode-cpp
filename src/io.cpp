@@ -2,6 +2,7 @@
 #include "conversion.h"
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <stdexcept>
@@ -83,5 +84,13 @@ void data_to_file_bytes(std::ostream &stream, const std::vector<bool> &data,
 //   otbv::data_to_file_bytes(file_out, encoded_data, resolution);
 //   file_out.close();
 // }
+
+void save(std::string filename, std::vector<bool> data) {
+  printf("test1\n");
+}
+
+void save(std::string filename, std::vector<std::vector<std::vector<bool>>> data) {
+  printf("test2\n");
+}
 
 } // namespace otbv
