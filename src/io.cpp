@@ -1,4 +1,5 @@
 #include "io.h"
+#include "conversion.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -151,21 +152,17 @@ std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
     }
     data_length = pack_chars(meta_buffer + 13);
   }
-  std::vector<std::vector<std::vector<bool>>> out;
-  {
-    // data
-    char data_buffer[data_length];
-    static_cast<void>(file_in.read(data_buffer, data_length));
-    std::vector<bool> encoding;
-    encoding.reserve(data_length * 8);
-    for (size_t i = 0; i < data_length; i++) {
-      for (char i = 7; i >= 0; i--) {
-        encoding.push_back(data_buffer[i] >> i);
-      }
+  // data
+  char data_buffer[data_length];
+  static_cast<void>(file_in.read(data_buffer, data_length));
+  std::vector<bool> encoding;
+  encoding.reserve(data_length * 8);
+  for (size_t i = 0; i < data_length; i++) {
+    for (char i = 7; i >= 0; i--) {
+      encoding.push_back(data_buffer[i] >> i);
     }
-
-    // decode here pls
   }
+  auto out = decode(encoding);
   return out;
 }
 
