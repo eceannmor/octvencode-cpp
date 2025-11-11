@@ -4,4 +4,4 @@
 
 > WARNING! This project is a work-in-progress. If you choose to use it, prepare to deal with all issues that come with it
 
-See formal specifications at [eceannmor.com/OTBV_specification.html](eceannmor.com/OTBV_specification.html)
+See formal specifications at [eceannmor.com/OTBV_specification.html](https://eceannmor.com/OTBV_specification.html)
