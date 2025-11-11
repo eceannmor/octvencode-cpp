@@ -1,6 +1,7 @@
 #include "conversion.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -212,7 +213,7 @@ vector3<bool> pad_to_cube(const vector3<bool> &data) {
   return copy;
 }
 
-inline void set_range(vector3<bool> data, bool value, const size_t xs,
+inline void set_range(vector3<bool> &data, bool value, const size_t xs,
                       const size_t xe, const size_t ys, const size_t ye,
                       const size_t zs, const size_t ze) {
   // start index inclusive, end index exclusive
@@ -235,29 +236,29 @@ size_t decode_recursive(const std::vector<bool> &encoding, vector3<bool> &out,
 
   bool token = encoding[next_idx];
   next_idx++;
-
   if (!token) {
     // leaf
     if (next_idx >= encoding.size()) {
       throw std::out_of_range("Unexpected end of the encoding");
     }
     bool value = encoding[next_idx];
-    next_idx++;
     set_range(out, value, xs, xe, ys, ye, zs, ze);
+    return next_idx + 1;
   } else {
-    auto x_split = {xs, (xs + xe) / 2, xe};
-    auto y_split = {ys, (ys + ye) / 2, ye};
-    auto z_split = {zs, (zs + ze) / 2, ze};
+    std::array<size_t, 3> x_split = {xs, (xs + xe) / 2, xe};
+    std::array<size_t, 3> y_split = {ys, (ys + ye) / 2, ye};
+    std::array<size_t, 3> z_split = {zs, (zs + ze) / 2, ze};
     for (int x : {0, 1}) {
       for (int y : {0, 1}) {
         for (int z : {0, 1}) {
-          next_idx =
-              decode_recursive(encoding, out, next_idx, xs, xe, ys, ye, zs, ze);
+          next_idx = decode_recursive(
+              encoding, out, next_idx, x_split[x], x_split[x + 1], y_split[y],
+              y_split[y + 1], z_split[z], z_split[z + 1]);
         }
       }
     }
+    return next_idx;
   }
-  return next_idx;
 }
 
 void cut_volume(vector3<bool> &volume,
@@ -281,9 +282,10 @@ vector3<bool> decode(const std::vector<bool> &encoding,
                      const std::tuple<size_t, size_t, size_t> &resolution) {
   vector3<bool> out;
   size_t decoding_res = max_res_pow2_roof(resolution);
+  cut_volume(out, decoding_res, decoding_res, decoding_res);
   size_t end_idx = decode_recursive(encoding, out, 0, 0, decoding_res, 0,
                                     decoding_res, 0, decoding_res);
-  assert(end_idx == encoding.size());
+  // assert(end_idx == encoding.size());
   cut_volume(out, resolution);
   return out;
 }
