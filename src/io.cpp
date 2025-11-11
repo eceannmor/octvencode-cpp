@@ -5,7 +5,16 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <stdexcept>
 #include <tuple>
+#include <vector>
+
+class signature_validation_error : public std::runtime_error {
+public:
+  explicit signature_validation_error(const std::string &__arg)
+      _GLIBCXX_TXN_SAFE;
+  virtual ~signature_validation_error() _GLIBCXX_NOTHROW;
+};
 
 namespace otbv {
 
@@ -33,7 +42,7 @@ void stream_data_as_file_bytes(
     meta_res_y = std::get<1>(resolution);
     meta_res_z = std::get<2>(resolution);
   }
-  
+
   uint32_t meta_data_len = data.size() + pad_len;
 
   /*** data ***/
@@ -101,6 +110,63 @@ void save(const std::string &filename,
     printf("Written %d bytes\n", bytes_written);
   }
   file_out.close();
+}
+
+uint32_t pack_chars(char *c) {
+  uint32_t val = 0;
+  val |= c[0] << 24;
+  val |= c[1] << 16;
+  val |= c[2] << 8;
+  val |= c[3];
+  return val;
+}
+
+std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
+  std::ifstream file_in(filename, std::ios::binary);
+  {
+    // signature
+    char sign_buffer[5];
+    static_cast<void>(file_in.read(sign_buffer, 5));
+    if (!strcmp(SIGNATURE, sign_buffer)) {
+      throw signature_validation_error(
+          "Signature validation failed. Could not confirm that the provided "
+          "filename refers to a valid OTBV file.");
+    }
+  }
+  uint32_t x_res, y_res, z_res, data_length;
+  char padding_length;
+  bool volume_padded;
+  {
+    // metadata
+    char meta_buffer[17];
+    static_cast<void>(file_in.read(meta_buffer, 17));
+    padding_length = meta_buffer[0] >> 5;
+    volume_padded = (meta_buffer[0] >> 4) & 1;
+    x_res = pack_chars(meta_buffer + 1);
+    if (!volume_padded) {
+      y_res = z_res = x_res;
+    } else {
+      y_res = pack_chars(meta_buffer + 5);
+      z_res = pack_chars(meta_buffer + 9);
+    }
+    data_length = pack_chars(meta_buffer + 13);
+  }
+  std::vector<std::vector<std::vector<bool>>> out;
+  {
+    // data
+    char data_buffer[data_length];
+    static_cast<void>(file_in.read(data_buffer, data_length));
+    std::vector<bool> encoding;
+    encoding.reserve(data_length * 8);
+    for (size_t i = 0; i < data_length; i++) {
+      for (char i = 7; i >= 0; i--) {
+        encoding.push_back(data_buffer[i] >> i);
+      }
+    }
+
+    // decode here pls
+  }
+  return out;
 }
 
 } // namespace otbv
