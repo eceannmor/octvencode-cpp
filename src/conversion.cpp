@@ -6,7 +6,10 @@
 #include <cstddef>
 #include <cstdio>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
+
+namespace otbv {
 
 // https://www.reddit.com/r/cpp_questions/comments/1h3sva9/
 // not handling edge cases
@@ -23,7 +26,17 @@ size_t pow2_roof(size_t number) {
   return val + 1;
 }
 
-namespace otbv {
+size_t max_res_pow2_roof(const std::tuple<size_t, size_t, size_t> &resolution) {
+  return max_res_pow2_roof(std::get<0>(resolution), std::get<1>(resolution),
+                           std::get<2>(resolution));
+}
+
+size_t max_res_pow2_roof(const size_t &x_res, const size_t &y_res,
+                         const size_t &z_res) {
+  size_t max_res = std::max(x_res, y_res);
+  max_res = std::max(max_res, z_res);
+  return pow2_roof(max_res);
+}
 
 template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data) {
   const size_t data_size = data.size();
@@ -53,7 +66,7 @@ template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data) {
 }
 
 vector3<bool> reshape(const std::vector<bool> &data,
-                   const std::tuple<size_t, size_t, size_t> &resolution) {
+                      const std::tuple<size_t, size_t, size_t> &resolution) {
   const size_t data_size = data.size(), //
       x_res = std::get<0>(resolution),  //
       y_res = std::get<1>(resolution),  //
@@ -86,8 +99,9 @@ vector3<bool> reshape(const std::vector<bool> &data,
 }
 
 template <typename T>
-bool is_subvolume_homogeneous(const vector3<T> &data, size_t xs, size_t xe,
-                              size_t ys, size_t ye, size_t zs, size_t ze) {
+bool is_subvolume_homogeneous(const vector3<T> &data, const size_t xs,
+                              const size_t xe, const size_t ys, const size_t ye,
+                              const size_t zs, const size_t ze) {
   size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
   if (subvolume_size < 2) {
     return true;
@@ -110,8 +124,8 @@ size_t size(const vector3<bool> &data) {
 }
 
 void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
-                      size_t xs, size_t xe, size_t ys, size_t ye, size_t zs,
-                      size_t ze) {
+                      const size_t xs, const size_t xe, const size_t ys,
+                      const size_t ye, const size_t zs, const size_t ze) {
   // start index inclusive, end index exclusive
   size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
   if (0 == subvolume_size) {
@@ -159,9 +173,8 @@ std::vector<bool> encode(const vector3<bool> &data) {
 }
 
 void pad_to_cube(vector3<bool> &data) {
-  size_t max_res = std::max(data.size(), data[0].size());
-  max_res = std::max(max_res, data[0][0].size());
-  max_res = pow2_roof(max_res);
+  size_t max_res =
+      max_res_pow2_roof(data.size(), data[0].size(), data[0][0].size());
   data.resize(max_res);
   for (auto &plane : data) {
     plane.resize(max_res);
@@ -197,6 +210,82 @@ vector3<bool> pad_to_cube(const vector3<bool> &data) {
   auto copy = deep_copy(data);
   pad_to_cube(copy);
   return copy;
+}
+
+inline void set_range(vector3<bool> data, bool value, const size_t xs,
+                      const size_t xe, const size_t ys, const size_t ye,
+                      const size_t zs, const size_t ze) {
+  // start index inclusive, end index exclusive
+  for (size_t x = xs; x < xe; x++) {
+    for (size_t y = ys; y < ye; y++) {
+      for (size_t z = zs; z < ze; z++) {
+        data[x][y][z] = value;
+      }
+    }
+  }
+}
+
+size_t decode_recursive(const std::vector<bool> &encoding, vector3<bool> &out,
+                        size_t next_idx, const size_t xs, const size_t xe,
+                        const size_t ys, const size_t ye, const size_t zs,
+                        const size_t ze) {
+  if (next_idx >= encoding.size()) {
+    throw std::out_of_range("Unexpected end of the encoding");
+  }
+
+  bool token = encoding[next_idx];
+  next_idx++;
+
+  if (!token) {
+    // leaf
+    if (next_idx >= encoding.size()) {
+      throw std::out_of_range("Unexpected end of the encoding");
+    }
+    bool value = encoding[next_idx];
+    next_idx++;
+    set_range(out, value, xs, xe, ys, ye, zs, ze);
+  } else {
+    auto x_split = {xs, (xs + xe) / 2, xe};
+    auto y_split = {ys, (ys + ye) / 2, ye};
+    auto z_split = {zs, (zs + ze) / 2, ze};
+    for (int x : {0, 1}) {
+      for (int y : {0, 1}) {
+        for (int z : {0, 1}) {
+          next_idx =
+              decode_recursive(encoding, out, next_idx, xs, xe, ys, ye, zs, ze);
+        }
+      }
+    }
+  }
+  return next_idx;
+}
+
+void cut_volume(vector3<bool> &volume,
+                const std::tuple<size_t, size_t, size_t> &resolution) {
+  cut_volume(volume, std::get<0>(resolution), std::get<1>(resolution),
+             std::get<2>(resolution));
+}
+
+void cut_volume(vector3<bool> &volume, const size_t &x_res, const size_t &y_res,
+                const size_t &z_res) {
+  volume.resize(x_res);
+  for (auto &row : volume) {
+    row.resize(y_res);
+    for (auto &col : row) {
+      col.resize(z_res);
+    }
+  }
+}
+
+vector3<bool> decode(const std::vector<bool> &encoding,
+                     const std::tuple<size_t, size_t, size_t> &resolution) {
+  vector3<bool> out;
+  size_t decoding_res = max_res_pow2_roof(resolution);
+  size_t end_idx = decode_recursive(encoding, out, 0, 0, decoding_res, 0,
+                                    decoding_res, 0, decoding_res);
+  assert(end_idx == encoding.size());
+  cut_volume(out, resolution);
+  return out;
 }
 
 } // namespace otbv
