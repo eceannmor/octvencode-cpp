@@ -24,14 +24,14 @@ size_t pow2_roof(size_t number) {
 
 namespace otbv {
 
-volume<bool> reshape_to_cubic(const std::vector<bool> &data) {
+vector3<bool> reshape_to_cubic(const std::vector<bool> &data) {
   const std::size_t data_size = data.size();
   double edge_len = std::cbrt(data_size);
   if (std::floor(edge_len) != edge_len) {
     throw std::invalid_argument("Could not reshape data into a cubic tensor");
   } else {
     std::size_t new_edge_len = static_cast<std::size_t>(edge_len);
-    volume<bool> out;
+    vector3<bool> out;
     out.resize(new_edge_len);
     for (auto &row : out) {
       row.resize(new_edge_len);
@@ -52,7 +52,7 @@ volume<bool> reshape_to_cubic(const std::vector<bool> &data) {
 }
 
 template <typename T>
-bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
+bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
                               std::size_t xe, std::size_t ys, std::size_t ye,
                               std::size_t zs, std::size_t ze) {
   std::size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
@@ -72,11 +72,11 @@ bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
   return true;
 }
 
-template <typename T> inline unsigned long long size(const volume<T> &data) {
+template <typename T> inline unsigned long long size(const vector3<T> &data) {
   return data.size() * data[0].size() * data[0][0].size();
 }
 
-void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
+void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
                       std::size_t xs, std::size_t xe, std::size_t ys,
                       std::size_t ye, std::size_t zs, std::size_t ze) {
   // start index inclusive, end index exclusive
@@ -118,14 +118,14 @@ void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
   }
 }
 
-std::vector<bool> encode(const volume<bool> &data) {
+std::vector<bool> encode(const vector3<bool> &data) {
   std::vector<bool> out;
   size_t resolution = data.size();
   encode_recursive(data, out, 0, resolution, 0, resolution, 0, resolution);
   return out;
 }
 
-void pad_to_cube(volume<bool> &data) {
+void pad_to_cube(vector3<bool> &data) {
   size_t max_res = std::max(data.size(), data[0].size());
   max_res = std::max(max_res, data[0][0].size());
   max_res = pow2_roof(max_res);

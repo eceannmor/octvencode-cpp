@@ -3,11 +3,11 @@
 #include <cstddef>
 #include <vector>
 
-template <typename T> using volume = std::vector<std::vector<std::vector<T>>>;
+template <typename T> using vector3 = std::vector<std::vector<std::vector<T>>>;
 
 namespace otbv {
 
-void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
+void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
                       std::size_t xs, std::size_t xe, std::size_t ys,
                       std::size_t ye, std::size_t zs, std::size_t ze);
 
@@ -17,9 +17,9 @@ void encode_recursive(const volume<bool> &data, std::vector<bool> &encoding,
  *
  * @return std::vector<bool>
  */
-std::vector<bool> encode(const volume<bool> &data);
+std::vector<bool> encode(const vector3<bool> &data);
 
-template <typename T> volume<bool> convert_to_bool(const volume<T> &data);
+template <typename T> vector3<bool> convert_to_bool(const vector3<T> &data);
 
 /**
  * @brief Returns a copy of \p data reshaped into a cubic tensor, if possible
@@ -29,14 +29,14 @@ template <typename T> volume<bool> convert_to_bool(const volume<T> &data);
  * @return std::vector<std::vector<std::vector<T>>> Cubic tensor with side
  * length \p a (see \p data)
  */
-template <typename T> volume<T> reshape_to_cubic(const std::vector<T> &data);
+template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data);
 
-template <typename T> inline unsigned long long size(const volume<T> &data);
+template <typename T> inline unsigned long long size(const vector3<T> &data);
 
 template <typename T>
-bool is_subvolume_homogeneous(const volume<T> &data, std::size_t xs,
+bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
                               std::size_t xe, std::size_t ys, std::size_t ye,
                               std::size_t zs, std::size_t ze);
 
-void pad_to_cube(volume<bool> &data);
+void pad_to_cube(vector3<bool> &data);
 } // namespace otbv
