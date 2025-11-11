@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <tuple>
 #include <vector>
 
 template <typename T> using vector3 = std::vector<std::vector<std::vector<T>>>;
@@ -31,7 +32,11 @@ template <typename T> vector3<bool> convert_to_bool(const vector3<T> &data);
  */
 template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data);
 
-template <typename T> inline unsigned long long size(const vector3<T> &data);
+template <typename T>
+vector3<T> reshape(const std::vector<T> &data,
+                   const std::tuple<size_t, size_t, size_t> &resolution);
+
+template <typename T> size_t size(const vector3<T> &data);
 
 template <typename T>
 bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
@@ -39,4 +44,6 @@ bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
                               std::size_t zs, std::size_t ze);
 
 void pad_to_cube(vector3<bool> &data);
+
+vector3<bool> pad_to_cube(const vector3<bool> &data);
 } // namespace otbv

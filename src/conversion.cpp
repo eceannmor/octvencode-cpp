@@ -24,14 +24,14 @@ size_t pow2_roof(size_t number) {
 
 namespace otbv {
 
-vector3<bool> reshape_to_cubic(const std::vector<bool> &data) {
-  const std::size_t data_size = data.size();
+template <typename T> vector3<T> reshape_to_cubic(const std::vector<T> &data) {
+  const size_t data_size = data.size();
   double edge_len = std::cbrt(data_size);
   if (std::floor(edge_len) != edge_len) {
     throw std::invalid_argument("Could not reshape data into a cubic tensor");
   } else {
-    std::size_t new_edge_len = static_cast<std::size_t>(edge_len);
-    vector3<bool> out;
+    size_t new_edge_len = static_cast<size_t>(edge_len);
+    vector3<T> out;
     out.resize(new_edge_len);
     for (auto &row : out) {
       row.resize(new_edge_len);
@@ -39,10 +39,10 @@ vector3<bool> reshape_to_cubic(const std::vector<bool> &data) {
         col.resize(new_edge_len);
       }
     }
-    std::size_t id = 0;
-    for (std::size_t x = 0; x < edge_len; ++x) {
-      for (std::size_t y = 0; y < edge_len; ++y) {
-        for (std::size_t z = 0; z < edge_len; ++z) {
+    size_t id = 0;
+    for (size_t x = 0; x < edge_len; ++x) {
+      for (size_t y = 0; y < edge_len; ++y) {
+        for (size_t z = 0; z < edge_len; ++z) {
           out[x][y][z] = data[id++];
         }
       }
@@ -52,17 +52,49 @@ vector3<bool> reshape_to_cubic(const std::vector<bool> &data) {
 }
 
 template <typename T>
-bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
-                              std::size_t xe, std::size_t ys, std::size_t ye,
-                              std::size_t zs, std::size_t ze) {
-  std::size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
+vector3<T> reshape(const std::vector<T> &data,
+                   const std::tuple<size_t, size_t, size_t> &resolution) {
+  const size_t data_size = data.size(), //
+      x_res = std::get<0>(resolution),  //
+      y_res = std::get<1>(resolution),  //
+      z_res = std::get<2>(resolution),  //
+      resolution_size = x_res * y_res * z_res;
+
+  if (data_size != resolution_size) {
+    throw std::invalid_argument(
+        "Provided vector cannot be reshaped to a provided resolution");
+  }
+
+  vector3<T> out;
+  out.resize(x_res);
+  for (auto &row : out) {
+    row.resize(y_res);
+    for (auto &col : row) {
+      col.resize(z_res);
+    }
+  }
+  size_t id = 0;
+  for (size_t x = 0; x < x_res; ++x) {
+    for (size_t y = 0; y < y_res; ++y) {
+      for (size_t z = 0; z < z_res; ++z) {
+        out[x][y][z] = data[id++];
+      }
+    }
+  }
+  return out;
+}
+
+template <typename T>
+bool is_subvolume_homogeneous(const vector3<T> &data, size_t xs, size_t xe,
+                              size_t ys, size_t ye, size_t zs, size_t ze) {
+  size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
   if (subvolume_size < 2) {
     return true;
   }
   const T &first = data[xs][ys][zs];
-  for (std::size_t x = xs; x < xe; ++x) {
-    for (std::size_t y = ys; y < ye; ++y) {
-      for (std::size_t z = zs; z < ze; ++z) {
+  for (size_t x = xs; x < xe; ++x) {
+    for (size_t y = ys; y < ye; ++y) {
+      for (size_t z = zs; z < ze; ++z) {
         if (data[x][y][z] != first) {
           return false;
         }
@@ -72,15 +104,19 @@ bool is_subvolume_homogeneous(const vector3<T> &data, std::size_t xs,
   return true;
 }
 
-template <typename T> inline unsigned long long size(const vector3<T> &data) {
+template <typename T> inline size_t size(const vector3<T> &data) {
+  return data.size() * data[0].size() * data[0][0].size();
+}
+
+size_t size(const vector3<bool> &data) {
   return data.size() * data[0].size() * data[0][0].size();
 }
 
 void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
-                      std::size_t xs, std::size_t xe, std::size_t ys,
-                      std::size_t ye, std::size_t zs, std::size_t ze) {
+                      size_t xs, size_t xe, size_t ys, size_t ye, size_t zs,
+                      size_t ze) {
   // start index inclusive, end index exclusive
-  std::size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
+  size_t subvolume_size = (xe - xs) * (ye - ys) * (ze - zs);
   if (0 == subvolume_size) {
     printf("%zu, %zu, %zu, %zu, %zu, %zu\n", xs, xe, ys, ye, zs, ze);
     throw std::invalid_argument(
@@ -96,21 +132,21 @@ void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
     return;
   }
 
-  std::size_t x_split = (xe + xs) >> 1;
-  std::size_t y_split = (ye + ys) >> 1;
-  std::size_t z_split = (ze + zs) >> 1;
+  size_t x_split = (xe + xs) >> 1;
+  size_t y_split = (ye + ys) >> 1;
+  size_t z_split = (ze + zs) >> 1;
 
   encoding.push_back(1);
 
   for (char i = 0; i < 2; i++) {
-    std::size_t xfirst = i ? x_split : xs;
-    std::size_t xsecond = i ? xe : x_split;
+    size_t xfirst = i ? x_split : xs;
+    size_t xsecond = i ? xe : x_split;
     for (char j = 0; j < 2; j++) {
-      std::size_t yfirst = j ? y_split : ys;
-      std::size_t ysecond = j ? ye : y_split;
+      size_t yfirst = j ? y_split : ys;
+      size_t ysecond = j ? ye : y_split;
       for (char k = 0; k < 2; k++) {
-        std::size_t zfirst = k ? z_split : zs;
-        std::size_t zsecond = k ? ze : z_split;
+        size_t zfirst = k ? z_split : zs;
+        size_t zsecond = k ? ze : z_split;
         encode_recursive(data, encoding, xfirst, xsecond, yfirst, ysecond,
                          zfirst, zsecond);
       }
@@ -136,6 +172,34 @@ void pad_to_cube(vector3<bool> &data) {
       col.resize(max_res);
     }
   }
+}
+
+template <typename T> vector3<T> deep_copy(const vector3<T> &vector) {
+  vector3<bool> copy;
+  size_t x_res = vector.size(), y_res = vector[0].size(),
+         z_res = vector[0][0].size();
+  copy.resize(x_res);
+  for (auto &row : copy) {
+    row.resize(y_res);
+    for (auto &col : row) {
+      col.resize(z_res);
+    }
+  }
+  size_t id = 0;
+  for (size_t x = 0; x < x_res; ++x) {
+    for (size_t y = 0; y < y_res; ++y) {
+      for (size_t z = 0; z < z_res; ++z) {
+        copy[x][y][z] = vector[x][y][z];
+      }
+    }
+  }
+  return copy;
+}
+
+vector3<bool> pad_to_cube(const vector3<bool> &data) {
+  auto copy = deep_copy(data);
+  pad_to_cube(copy);
+  return copy;
 }
 
 } // namespace otbv

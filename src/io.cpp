@@ -1,5 +1,6 @@
 #include "io.h"
 #include "conversion.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -19,28 +20,21 @@ constexpr bool endswith(const std::string &str, const std::string &suffix) {
 
 void stream_data_as_file_bytes(
     std::ostream &stream, const std::vector<bool> &data,
-    const std::tuple<size_t, size_t, size_t> resolution) {
+    const std::tuple<size_t, size_t, size_t> resolution, const bool padded) {
   /*** metadata ***/
   char rem = data.size() % 8;
   char pad_len = rem == 0 ? 0 : 8 - rem;
   uint8_t meta_first = 0;
   meta_first |= (pad_len << 5);
+  // flag for whether the volume was padded to cubic
+  meta_first |= (padded << 4);
 
-  // this has to be updated
-  // if (volume has been padded){
-  //    set this bit to 1
-  // }
-  if (true) {
-    meta_first |= (0 << 4);
+  uint32_t meta_res_x = std::get<0>(resolution), meta_res_y = 0, meta_res_z = 0;
+  if (padded) {
+    meta_res_y = std::get<1>(resolution);
+    meta_res_z = std::get<2>(resolution);
   }
-
-  // res
-  // same here, resolution should be stored separately
-  uint32_t meta_res_x = std::get<0>(resolution);
-  // not written if cubic
-  uint32_t meta_res_y = 0;
-  uint32_t meta_res_z = 0;
-
+  
   uint32_t meta_data_len = data.size() + pad_len;
 
   /*** data ***/
@@ -70,13 +64,14 @@ void stream_data_as_file_bytes(
   }
 }
 
-void save(std::string filename, std::vector<bool> data) {
-  const vector3<bool> data_reshaped = reshape_to_cubic(data);
+void save(const std::string &filename, const std::vector<bool> &data,
+          const std::tuple<size_t, size_t, size_t> &resolution) {
+  const vector3<bool> data_reshaped = reshape(data, resolution);
   save(filename, data_reshaped);
 }
 
-void save(std::string filename,
-          std::vector<std::vector<std::vector<bool>>> data) {
+void save(const std::string &filename,
+          const std::vector<std::vector<std::vector<bool>>> &data) {
   size_t x_res, y_res, z_res;
   x_res = data.size();
   if (!x_res) {
@@ -93,10 +88,15 @@ void save(std::string filename,
     printf("The provided volume size is 0. Nothing will be written");
     return;
   }
-  const std::vector<bool> encoded_data = encode(data);
-  auto resolution = std::make_tuple(x_res, y_res, z_res);
+  const vector3<bool> padded_data = pad_to_cube(data);
+  bool padded = false;
+  if (size(padded_data) > size(data)) {
+    padded = true;
+  }
+  const std::vector<bool> encoded_data = encode(padded_data);
+  const auto resolution = std::make_tuple(x_res, y_res, z_res);
   std::ofstream file_out(filename, std::ofstream::binary);
-  stream_data_as_file_bytes(file_out, encoded_data, resolution);
+  stream_data_as_file_bytes(file_out, encoded_data, resolution, padded);
   int bytes_written = file_out.tellp();
   if (bytes_written > 0) {
     printf("Written %d bytes", bytes_written);
