@@ -108,10 +108,10 @@ void save(const std::string &filename,
 
 uint32_t pack_chars(char *c) {
   uint32_t val = 0;
-  val |= c[0] << 24;
-  val |= c[1] << 16;
-  val |= c[2] << 8;
-  val |= c[3];
+  val |= c[0];
+  val |= c[1] << 8;
+  val |= c[2] << 16;
+  val |= c[3] << 24;
   return val;
 }
 
@@ -147,14 +147,16 @@ std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
   }
   // data
   char data_buffer[data_length];
+  // this reads wrong data
   static_cast<void>(file_in.read(data_buffer, data_length));
   std::vector<bool> encoding;
   encoding.reserve(data_length * 8);
   for (size_t i = 0; i < data_length; i++) {
-    for (char i = 7; i >= 0; i--) {
-      encoding.push_back(data_buffer[i] >> i);
+    for (char j = 7; j >= 0; j--) {
+      encoding.push_back(data_buffer[i] >> j);
     }
   }
+  encoding.erase(encoding.begin(), encoding.begin() + padding_length);
   auto out = decode(encoding, {x_res, y_res, z_res});
   return out;
 }
