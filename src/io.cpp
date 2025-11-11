@@ -10,13 +10,6 @@
 #include <tuple>
 #include <vector>
 
-class signature_validation_error : public std::runtime_error {
-public:
-  explicit signature_validation_error(const std::string &__arg)
-      _GLIBCXX_TXN_SAFE;
-  virtual ~signature_validation_error() _GLIBCXX_NOTHROW;
-};
-
 namespace otbv {
 
 static constexpr char SIGNATURE[] = "OTBV\x96";
@@ -129,7 +122,7 @@ std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
     char sign_buffer[5];
     static_cast<void>(file_in.read(sign_buffer, 5));
     if (!strcmp(SIGNATURE, sign_buffer)) {
-      throw signature_validation_error(
+      throw std::runtime_error(
           "Signature validation failed. Could not confirm that the provided "
           "filename refers to a valid OTBV file.");
     }
@@ -162,7 +155,7 @@ std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
       encoding.push_back(data_buffer[i] >> i);
     }
   }
-  auto out = decode(encoding);
+  auto out = decode(encoding, {x_res, y_res, z_res});
   return out;
 }
 

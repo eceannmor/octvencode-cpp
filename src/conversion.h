@@ -20,7 +20,8 @@ void encode_recursive(const vector3<bool> &data, std::vector<bool> &encoding,
  */
 std::vector<bool> encode(const vector3<bool> &data);
 
-vector3<bool> decode(const std::vector<bool> &encoding);
+vector3<bool> decode(const std::vector<bool> &encoding,
+                     const std::tuple<size_t, size_t, size_t> &resolution);
 
 inline void set_range(vector3<bool>, bool value, const size_t xs,
                       const size_t xe, const size_t ys, const size_t ye,
