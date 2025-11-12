@@ -285,7 +285,7 @@ vector3<bool> decode(const std::vector<bool> &encoding,
   cut_volume(out, decoding_res, decoding_res, decoding_res);
   size_t end_idx = decode_recursive(encoding, out, 0, 0, decoding_res, 0,
                                     decoding_res, 0, decoding_res);
-  // assert(end_idx == encoding.size());
+  assert(end_idx == encoding.size());
   cut_volume(out, resolution);
   return out;
 }

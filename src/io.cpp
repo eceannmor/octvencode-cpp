@@ -37,7 +37,7 @@ void stream_data_as_file_bytes(
     meta_res_z = std::get<2>(resolution);
   }
 
-  uint32_t meta_data_len = data.size() + pad_len;
+  uint32_t meta_data_len = (data.size() + pad_len) / 8;
 
   /*** data ***/
   std::vector<bool> data_out;
@@ -153,7 +153,7 @@ std::vector<std::vector<std::vector<bool>>> load(const std::string &filename) {
   encoding.reserve(data_length * 8);
   for (size_t i = 0; i < data_length; i++) {
     for (char j = 7; j >= 0; j--) {
-      encoding.push_back(data_buffer[i] >> j);
+      encoding.push_back((data_buffer[i] >> j) & 1);
     }
   }
   encoding.erase(encoding.begin(), encoding.begin() + padding_length);
