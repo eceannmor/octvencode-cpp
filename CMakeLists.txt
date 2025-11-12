@@ -8,6 +8,8 @@ project(
 include(GNUInstallDirs)
 include(CTest)
 
+target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+
 # add_library(${PROJECT_NAME} SHARED 
 #     src/conversion.cpp
 #     src/io.cpp
