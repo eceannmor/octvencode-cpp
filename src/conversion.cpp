@@ -185,6 +185,12 @@ void pad_to_cube(vector3<bool> &data) {
   }
 }
 
+vector3<bool> pad_to_cube(const vector3<bool> &data) {
+  auto copy = deep_copy(data);
+  pad_to_cube(copy);
+  return copy;
+}
+
 template <typename T> vector3<T> deep_copy(const vector3<T> &vector) {
   vector3<bool> copy;
   size_t x_res = vector.size(), y_res = vector[0].size(),
@@ -204,12 +210,6 @@ template <typename T> vector3<T> deep_copy(const vector3<T> &vector) {
       }
     }
   }
-  return copy;
-}
-
-vector3<bool> pad_to_cube(const vector3<bool> &data) {
-  auto copy = deep_copy(data);
-  pad_to_cube(copy);
   return copy;
 }
 
@@ -261,6 +261,18 @@ size_t decode_recursive(const std::vector<bool> &encoding, vector3<bool> &out,
   }
 }
 
+vector3<bool> decode(const std::vector<bool> &encoding,
+                     const std::tuple<size_t, size_t, size_t> &resolution) {
+  vector3<bool> out;
+  size_t decoding_res = max_res_pow2_roof(resolution);
+  cut_volume(out, decoding_res, decoding_res, decoding_res);
+  size_t end_idx = decode_recursive(encoding, out, 0, 0, decoding_res, 0,
+                                    decoding_res, 0, decoding_res);
+  assert(end_idx == encoding.size());
+  cut_volume(out, resolution);
+  return out;
+}
+
 void cut_volume(vector3<bool> &volume,
                 const std::tuple<size_t, size_t, size_t> &resolution) {
   cut_volume(volume, std::get<0>(resolution), std::get<1>(resolution),
@@ -276,18 +288,6 @@ void cut_volume(vector3<bool> &volume, const size_t &x_res, const size_t &y_res,
       col.resize(z_res);
     }
   }
-}
-
-vector3<bool> decode(const std::vector<bool> &encoding,
-                     const std::tuple<size_t, size_t, size_t> &resolution) {
-  vector3<bool> out;
-  size_t decoding_res = max_res_pow2_roof(resolution);
-  cut_volume(out, decoding_res, decoding_res, decoding_res);
-  size_t end_idx = decode_recursive(encoding, out, 0, 0, decoding_res, 0,
-                                    decoding_res, 0, decoding_res);
-  assert(end_idx == encoding.size());
-  cut_volume(out, resolution);
-  return out;
 }
 
 } // namespace otbv
