@@ -6,8 +6,6 @@ project(
     LANGUAGES CXX
 )
 include(GNUInstallDirs)
-include(CTest)
-
 
 add_library(${PROJECT_NAME} STATIC 
     src/conversion.cpp
@@ -28,5 +26,9 @@ install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pc
 
 add_executable(testing tests/tests.cpp)
 target_link_libraries(testing PRIVATE ${PROJECT_NAME})
-enable_testing()
-add_test(NAME testing COMMAND $<TARGET_FILE:testing>)
+
+if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
+    enable_testing()
+    add_test(NAME testing COMMAND $<TARGET_FILE:testing>)
+endif()
